@@ -68,6 +68,7 @@ input,textarea{font:inherit;font-size:17px;padding:11px 13px;border:1px solid #d
 textarea{min-height:100px;resize:vertical}
 form .btn{margin:0;padding:11px;font-size:19px;border-radius:12px}
 #mine{display:none}
+#wall{display:grid;gap:10px}
 .msg{background:rgba(251,247,239,.9);border:1px solid #e2d6bd;border-radius:14px;padding:12px 14px;text-align:right}
 .msg strong{color:var(--gold);display:block;margin-bottom:3px}
 .msg p{margin:0;white-space:pre-wrap;word-break:break-word}
@@ -193,8 +194,12 @@ section h2.in::after{width:62%}
         <textarea id="t" placeholder="Write a message for the couple..." maxlength="400" required></textarea>
         <button class="btn" type="submit">Send</button>
       </form>
-      <div id="mine"><div class="msg"><strong id="mn"></strong><p id="mt"></p></div><div class="thanks" id="ty"></div></div>
+      <div id="mine"><div class="msg"><strong id="mn"></strong><p id="mt"></p></div><div class="thanks" id="ty"></div><div class="note" style="display:block;margin-top:10px">To deliver your message, please press <b>Send</b> in WhatsApp.</div><a class="btn" id="wa" target="_blank" rel="noopener" style="margin-top:8px">Open WhatsApp</a></div>
       <div class="note" id="off">Your message could not be sent. Please try again in a moment.</div>
+    </section>
+    <section id="wallsec" style="display:none">
+      <h2>Wishes for the Couple</h2>
+      <div id="wall"></div>
     </section>
     </div></div>
 <div class="bb"><footer class="gold">Daniel &amp; Marianne</footer></div></div>
@@ -231,18 +236,23 @@ tick();setInterval(tick,1000);
 var ttl='Daniel & Marianne Wedding Celebration',loc='St. George & Virgin Mary Church, Madinaty, Cairo';
 $('addcal').href='https://www.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent(ttl)+'&dates=20261108T160000Z/20261108T180000Z&ctz=Africa/Cairo&location='+encodeURIComponent(loc);
 $('dirs').href='https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(loc)})();
-/* ---------- guest message: only the writer sees their own ---------- */
-function showMine(n,t){$('f').style.display='none';$('mn').textContent=n;$('mt').textContent=t;$('ty').textContent='Thank you, '+n+' — we look forward to celebrating with you 🤍';$('mine').style.display='block'}
+/* ---------- guest messages: sent to the couple on WhatsApp; approved ones are shown from messages.json ---------- */
+var WA='201288687306';
+function waLink(n,t){return 'https://wa.me/'+WA+'?text='+encodeURIComponent('Wedding invitation message\nFrom: '+n+'\n\n'+t)}
+function showMine(n,t){$('f').style.display='none';$('mn').textContent=n;$('mt').textContent=t;$('ty').textContent='Thank you, '+n+' — we look forward to celebrating with you 🤍';$('wa').href=waLink(n,t);$('mine').style.display='block'}
 try{var sv=JSON.parse(localStorage.getItem('wish')||'null');if(sv&&sv.n&&sv.t)showMine(sv.n,sv.t)}catch(e){}
-var col=null;
-(async function(){try{var db=await claude.use('db');if(db)col=db.collection('wishes')}catch(e){}})();
-$('f').addEventListener('submit',async function(e){
+$('f').addEventListener('submit',function(e){
  e.preventDefault();var n=$('n').value.trim().slice(0,40),t=$('t').value.trim().slice(0,400);if(!n||!t)return;
  $('off').style.display='none';
- try{if(col)await col.add({name:n,msg:t,t:Date.now()});
-  try{localStorage.setItem('wish',JSON.stringify({n:n,t:t}))}catch(x){}
-  showMine(n,t)}catch(err){$('off').style.display='block'}
+ try{localStorage.setItem('wish',JSON.stringify({n:n,t:t}))}catch(x){}
+ showMine(n,t);
+ try{window.open(waLink(n,t),'_blank')}catch(x){}
 });
+fetch('messages.json?v='+Date.now()).then(function(r){return r.ok?r.json():[]}).then(function(a){
+ if(!Array.isArray(a))return;var w=$('wall'),c=0;
+ a.forEach(function(m){if(!m||!m.name||!m.text)return;c++;var d=document.createElement('div');d.className='msg';var s=document.createElement('strong');s.setAttribute('dir','auto');s.textContent=String(m.name).slice(0,40);var p=document.createElement('p');p.setAttribute('dir','auto');p.textContent=String(m.text).slice(0,400);d.appendChild(s);d.appendChild(p);w.appendChild(d)});
+ if(c)$('wallsec').style.display='block';
+}).catch(function(){});
 })();
 </script>
 <script>
