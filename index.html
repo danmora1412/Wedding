@@ -190,7 +190,8 @@ section h2.in::after{width:62%}
       <form id="f">
         <input id="n" placeholder="Your name" maxlength="40" required>
         <textarea id="t" placeholder="Write a message for the couple..." maxlength="400" required></textarea>
-        <button class="btn" type="submit">Send</button>
+        <button class="btn" type="submit">Send via WhatsApp</button>
+        <div class="note" style="display:block;text-align:center">WhatsApp will open with your message ready. Tap “Send” there to deliver it to the couple.</div>
       </form>
       <div id="mine"><div class="msg"><strong id="mn"></strong><p id="mt"></p></div><div class="thanks" id="ty"></div></div>
       <div class="note" id="off">Your message could not be sent. Please try again in a moment.</div>
@@ -237,6 +238,7 @@ var col=null;
 (async function(){try{var db=await claude.use('db');if(db)col=db.collection('wishes')}catch(e){}})();
 $('f').addEventListener('submit',async function(e){
  e.preventDefault();var n=$('n').value.trim().slice(0,40),t=$('t').value.trim().slice(0,400);if(!n||!t)return;
+ var wa='https://wa.me/201288687306?text='+encodeURIComponent('Wish from '+n+':\n'+t);var wn=window.open(wa,'_blank');if(!wn)location.href=wa;
  $('off').style.display='none';
  try{if(col)await col.add({name:n,msg:t,t:Date.now()});
   try{localStorage.setItem('wish',JSON.stringify({n:n,t:t}))}catch(x){}
